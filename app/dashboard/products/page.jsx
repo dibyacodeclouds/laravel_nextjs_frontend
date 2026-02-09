@@ -22,6 +22,15 @@ export default function Product() {
     const [buttonLoading, setButtonLoading] = useState(false);
     const [preview, setPreview] = useState(null);
 
+    const [allProducts, setAllProducts] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [itemsPerPage, setItemsPerPage] = useState(10); // Adjust as needed
+
+
+
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
             if (file) {
@@ -36,12 +45,12 @@ export default function Product() {
             }
     };
 
-    const fetchProducts = async () => {
+    const fetchProducts = async (page = 1   ) => {
         try {
             setLoading(true);   
             // Simulate API call
             const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-            const res = await fetch(`${apiUrl}products`, {
+            const res = await fetch(`${apiUrl}products?page=${page}&per_page=${itemsPerPage}`, {
             method: 'GET',
             credentials: "include",
             cache: 'no-store',
@@ -54,7 +63,17 @@ export default function Product() {
             if (res.ok) {
                 setLoading(false);
                 // console.log(data.data.data);
-                setProducts(data.data.data || []);
+                // Try different data structures
+                const apiData = data.data || data;
+                const products = apiData.data || apiData.products || [];
+                const pagination = apiData;
+
+                setProducts(products);
+                setTotalPages(pagination.last_page || 1);
+                setTotalProducts(pagination.total || 0);
+                setCurrentPage(pagination.current_page || 1);
+                setItemsPerPage(pagination.per_page || 10);
+                
             } else {
                 setLoading(false);
                 // console.log(data);
@@ -73,8 +92,8 @@ export default function Product() {
 
      useEffect(() => {
         document.title = "Products";
-        fetchProducts();
-    }, [router]);
+        fetchProducts(currentPage);
+    }, [router, currentPage]);
 
     const onhandleSubmit = async (e) => {
         e.preventDefault();
@@ -120,7 +139,7 @@ export default function Product() {
                     thumbnail: null,
                 });
                 setPreview(null);
-                fetchProducts();
+                fetchProducts(currentPage);
             } else {
                 setButtonLoading(false);
                 toast.error(data.message || "Failed to add product!");
@@ -153,7 +172,7 @@ export default function Product() {
         res.json().then(data => {
             if (res.ok) {
                 toast.success(data.message || "Product deleted successfully!");
-                fetchProducts();
+                fetchProducts(currentPage);
             } else {
                 toast.error(data.message || "Failed to delete product!");
                 setLoading(false);
@@ -170,7 +189,7 @@ export default function Product() {
     }   
 
 
-    const productsData = products;
+ const productsData = products;
 
   return (
     <div className="container mt-5">
@@ -218,6 +237,29 @@ export default function Product() {
                        
                     </tbody>
                 </table>
+                {/* Pagination Controls */}
+
+                <div className="d-flex justify-content-center mt-3">
+                    <nav>
+                        <ul className="pagination">
+                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                <button className="page-link" onClick={() => fetchProducts(1)}>First</button>
+                            </li>
+                            <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                                <button className="page-link" onClick={() => fetchProducts(currentPage - 1)}>‹</button>
+                            </li>
+                            <li className="page-item active">
+                                <span className="page-link">{currentPage} / {totalPages}</span>
+                            </li>
+                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                <button className="page-link" onClick={() => fetchProducts(currentPage + 1)}>›</button>
+                            </li>
+                            <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                                <button className="page-link" onClick={() => fetchProducts(totalPages)}>Last</button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
             </div>
             <div className="col-md-4">
                 <div className="card mb-4">

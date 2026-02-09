@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
-
 export const dynamic = 'force-dynamic';
+import { Counter } from '@/components/Counter';
+
+
 
 
 const profile = async () => {
@@ -35,6 +37,8 @@ export default function Dashboard() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const { count, increment, decrement, reset } = Counter();
+
   useEffect(() => {
     document.title = "Dashboard";
 
@@ -56,6 +60,7 @@ export default function Dashboard() {
           'Accept': "application/json",
         },
       });
+
       const data = await res.json();
       if (data.success) {
         router.push('/login');
@@ -86,6 +91,12 @@ export default function Dashboard() {
         <p className="lead mb-5 text-muted">
           Your dashboard is ready. Managed your account and view your latest activity here.
         </p>
+        <div> 
+          <h1>Count: {count}</h1>
+          <button onClick={increment}>Increment</button>
+          <button onClick={decrement}>Decrement</button>
+          <button onClick={reset}>Reset</button>
+        </div>
         <div className="d-grid gap-2 d-sm-flex justify-content-sm-center">
           <button className="btn btn-outline-danger btn-lg px-4" onClick={userLogout}>
             <i className="bi bi-box-arrow-right me-2"></i>Logout Session

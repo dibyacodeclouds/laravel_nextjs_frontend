@@ -45,6 +45,7 @@ export default function Login() {
         // Forcing a full page reload is the most reliable way to sync layouts in Next.js 15
         setTimeout(() => {
           router.push('/dashboard');
+          router.refresh();
           // window.location.href = '/dashboard';
         }, 1000);
       } else {
